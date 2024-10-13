@@ -1,7 +1,10 @@
 resource "aws_instance" "prometheus_grafana" {
-  ami           = "ami-0866a3c8686eaeeba"
+  ami           = "ami-0866a3c8686eaeeba"  # Use the correct AMI ID
   instance_type = "t2.micro"
   key_name      = "Ramprakash-Amazon3"
+
+  # Attach the security group
+  vpc_security_group_ids = [aws_security_group.prometheus_grafana_sg.id]
 
   user_data = <<-EOF
     #!/bin/bash
