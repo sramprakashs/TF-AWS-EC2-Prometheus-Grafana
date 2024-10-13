@@ -1,4 +1,4 @@
-# Fetch the existing security group (if it exists)
+# Fetch the existing security group (if it exists) 
 data "aws_security_group" "existing_prometheus_grafana_sg" {
   filter {
     name   = "group-name"
