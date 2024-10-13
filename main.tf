@@ -1,11 +1,7 @@
 resource "aws_instance" "prometheus_grafana" {
-  ami           = "ami-0c55b159cbfafe1f0" # Amazon Linux 2 AMI
+  ami           = "ami-0c55b159cbfafe1f0"
   instance_type = "t2.micro"
-  key_name      = "your-ssh-key"          # Your SSH key to access the EC2 instance
-
-  tags = {
-    Name = "PrometheusGrafanaServer"
-  }
+  key_name      = "your-ssh-key"
 
   user_data = <<-EOF
     #!/bin/bash
@@ -23,7 +19,7 @@ resource "aws_instance" "prometheus_grafana" {
     cd /home/ec2-user/monitoring
 
     # Docker Compose YAML for Prometheus and Grafana
-    cat << EOF > docker-compose.yml
+    cat <<EOL > docker-compose.yml
     version: '3'
 
     services:
@@ -40,67 +36,22 @@ resource "aws_instance" "prometheus_grafana" {
         container_name: grafana
         ports:
           - "3000:3000"
-    EOF
+    EOL
 
     # Prometheus configuration
-    cat << EOF > prometheus.yml
+    cat <<EOL > prometheus.yml
     global:
       scrape_interval: 15s
 
     scrape_configs:
-      - job_name: 'prometheus'
+      - job_name: "prometheus"
         static_configs:
-          - targets: ['localhost:9090']
-    EOF
+          - targets: ["localhost:9090"]
+    EOL
 
     # Start Docker containers
     sudo docker-compose up -d
   EOF
-}
-
-resource "aws_security_group" "prometheus_grafana_sg" {
-  name        = "prometheus_grafana_sg"
-  description = "Allow Prometheus and Grafana traffic"
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 9090
-    to_port     = 9090
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 3000
-    to_port     = 3000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "PrometheusGrafanaSG"
-  }
-}
-
-resource "aws_instance" "prometheus_grafana" {
-  ami           = "ami-0c55b159cbfafe1f0"
-  instance_type = "t2.micro"
-  key_name      = "Ramprakash-Amazon3"
-
-  vpc_security_group_ids = [aws_security_group.prometheus_grafana_sg.id]
 
   tags = {
     Name = "Prometheus-Grafana"
