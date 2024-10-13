@@ -1,33 +1,7 @@
-# Fetch the existing security group (if it exists) 
-data "aws_security_group" "existing_prometheus_grafana_sg" {
-  filter {
-    name   = "group-name"
-    values = ["prometheus_grafana_sg"]
-  }
-
-  filter {
-    name   = "vpc-id"
-    values = ["vpc-0d58c2b1c9009ac23"] # Replace with your actual VPC ID
-  }
-}
-
-# Destroy the existing security group if it exists
-resource "aws_security_group" "delete_existing_sg" {
-  count = length(data.aws_security_group.existing_prometheus_grafana_sg.id) > 0 ? 1 : 0
-
-  lifecycle {
-    prevent_destroy = false
-  }
-
-  name = data.aws_security_group.existing_prometheus_grafana_sg.name
-
-  # This block ensures that Terraform will destroy this resource if it exists.
-}
+# Remove the data source block for checking the existing security group
 
 # Create a new security group for Prometheus and Grafana
 resource "aws_security_group" "prometheus_grafana_sg" {
-  depends_on = [aws_security_group.delete_existing_sg] # Ensure deletion happens first
-
   name        = "prometheus_grafana_sg"
   description = "Allow Prometheus and Grafana traffic"
 
