@@ -3,9 +3,10 @@ resource "aws_security_group" "prometheus_grafana_sg" {
   name        = "prometheus_grafana_sg"
   description = "Allow Prometheus and Grafana traffic"
 
-  # Lifecycle block to always force recreation of the security group
+  # Lifecycle block to force recreation and ignore duplicate names
   lifecycle {
     create_before_destroy = true
+    prevent_destroy        = false
   }
 
   ingress {
