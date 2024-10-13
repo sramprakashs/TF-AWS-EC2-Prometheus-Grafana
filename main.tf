@@ -38,7 +38,7 @@ resource "aws_security_group" "prometheus_grafana_sg" {
 
 # Define the EC2 instance
 resource "aws_instance" "prometheus_grafana" {
-  ami           = "aami-0866a3c8686eaeeba"  # Replace with the correct AMI ID
+  ami           = "ami-0866a3c8686eaeeba"  # Replace with the correct AMI ID
   instance_type = "t2.micro"
   key_name      = "Ramprakash-Amazon3"
 
