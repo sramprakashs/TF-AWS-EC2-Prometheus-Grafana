@@ -98,7 +98,7 @@ resource "aws_security_group" "prometheus_grafana_sg" {
 resource "aws_instance" "prometheus_grafana" {
   ami           = "ami-0c55b159cbfafe1f0"
   instance_type = "t2.micro"
-  key_name      = "your-ssh-key"
+  key_name      = "Ramprakash-Amazon3"
 
   vpc_security_group_ids = [aws_security_group.prometheus_grafana_sg.id]
 
