@@ -1,5 +1,21 @@
-# Define the security group
+# Fetch the existing security group (if it exists)
+data "aws_security_group" "existing_prometheus_grafana_sg" {
+  filter {
+    name   = "group-name"
+    values = ["prometheus_grafana_sg"]
+  }
+
+  filter {
+    name   = "vpc-id"
+    values = ["vpc-0d58c2b1c9009ac23"] # Replace with your actual VPC ID
+  }
+
+  depends_on = [aws_vpc.selected] # Ensure VPC selection first
+}
+
+# Conditionally create a new security group only if it doesn't exist
 resource "aws_security_group" "prometheus_grafana_sg" {
+  count       = length(data.aws_security_group.existing_prometheus_grafana_sg.id) == 0 ? 1 : 0 # Create only if not found
   name        = "prometheus_grafana_sg"
   description = "Allow Prometheus and Grafana traffic"
 
@@ -36,14 +52,16 @@ resource "aws_security_group" "prometheus_grafana_sg" {
   }
 }
 
-# Define the EC2 instance
+# Use the existing security group if available, otherwise use the new one
 resource "aws_instance" "prometheus_grafana" {
-  ami           = "ami-0866a3c8686eaeeba"  # Replace with the correct AMI ID
+  ami           = "ami-12345678"  # Replace with the correct AMI ID
   instance_type = "t2.micro"
-  key_name      = "Ramprakash-Amazon3"
+  key_name      = "your-ssh-key"
 
-  # Attach the security group
-  vpc_security_group_ids = [aws_security_group.prometheus_grafana_sg.id]
+  # Attach either the existing or newly created security group
+  vpc_security_group_ids = length(data.aws_security_group.existing_prometheus_grafana_sg.id) > 0 ? 
+    [data.aws_security_group.existing_prometheus_grafana_sg.id] : 
+    [aws_security_group.prometheus_grafana_sg.id]
 
   user_data = <<-EOF
     #!/bin/bash
