@@ -58,10 +58,9 @@ resource "aws_instance" "prometheus_grafana" {
   key_name      = "your-ssh-key"
 
   # Attach either the existing or newly created security group
-  vpc_security_group_ids = coalesce(
-    data.aws_security_group.existing_prometheus_grafana_sg.id,
-    aws_security_group.prometheus_grafana_sg[0].id
-  )
+  vpc_security_group_ids = length(data.aws_security_group.existing_prometheus_grafana_sg.id) > 0 ? 
+    [data.aws_security_group.existing_prometheus_grafana_sg.id] : 
+    aws_security_group.prometheus_grafana_sg.*.id[0]
 
   user_data = <<-EOF
     #!/bin/bash
