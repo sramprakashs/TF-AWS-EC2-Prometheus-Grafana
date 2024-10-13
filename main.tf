@@ -40,9 +40,9 @@ resource "aws_security_group" "prometheus_grafana_sg" {
 
 # Define the EC2 instance and attach the recreated security group
 resource "aws_instance" "prometheus_grafana" {
-  ami           = "ami-12345678"  # Replace with the correct AMI ID
+  ami           = "ami-0866a3c8686eaeeba"  # Replace with the correct AMI ID
   instance_type = "t2.micro"
-  key_name      = "your-ssh-key"
+  key_name      = "Ramprakash-Amazon3"
 
   # Attach the recreated security group
   vpc_security_group_ids = [aws_security_group.prometheus_grafana_sg.id]
