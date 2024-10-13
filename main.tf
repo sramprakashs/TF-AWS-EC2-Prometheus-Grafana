@@ -13,7 +13,8 @@ data "aws_security_group" "existing_prometheus_grafana_sg" {
 
 # Conditionally create a new security group if the existing one is not found
 resource "aws_security_group" "prometheus_grafana_sg" {
-  count       = length(data.aws_security_group.existing_prometheus_grafana_sg.id) == 0 ? 1 : 0
+  count = length(data.aws_security_group.existing_prometheus_grafana_sg.id) == 0 ? 1 : 0
+
   name        = "prometheus_grafana_sg"
   description = "Allow Prometheus and Grafana traffic"
 
@@ -57,9 +58,10 @@ resource "aws_instance" "prometheus_grafana" {
   key_name      = "your-ssh-key"
 
   # Attach either the existing or newly created security group
-  vpc_security_group_ids = length(data.aws_security_group.existing_prometheus_grafana_sg.id) > 0 ? 
-    [data.aws_security_group.existing_prometheus_grafana_sg.id] : 
-    aws_security_group.prometheus_grafana_sg.*.id
+  vpc_security_group_ids = coalesce(
+    data.aws_security_group.existing_prometheus_grafana_sg.id,
+    aws_security_group.prometheus_grafana_sg[0].id
+  )
 
   user_data = <<-EOF
     #!/bin/bash
