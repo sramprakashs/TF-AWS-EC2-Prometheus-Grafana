@@ -1,5 +1,44 @@
+# Define the security group
+resource "aws_security_group" "prometheus_grafana_sg" {
+  name        = "prometheus_grafana_sg"
+  description = "Allow Prometheus and Grafana traffic"
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # Open SSH access to all IPs
+  }
+
+  ingress {
+    from_port   = 9090
+    to_port     = 9090
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # Open Prometheus port
+  }
+
+  ingress {
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # Open Grafana port
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"] # Allow all outbound traffic
+  }
+
+  tags = {
+    Name = "PrometheusGrafanaSG"
+  }
+}
+
+# Define the EC2 instance
 resource "aws_instance" "prometheus_grafana" {
-  ami           = "ami-0866a3c8686eaeeba"  # Use the correct AMI ID
+  ami           = "aami-0866a3c8686eaeeba"  # Replace with the correct AMI ID
   instance_type = "t2.micro"
   key_name      = "Ramprakash-Amazon3"
 
