@@ -1,67 +1,13 @@
-# Fetch the existing security group (if it exists)
-data "aws_security_group" "existing_prometheus_grafana_sg" {
-  filter {
-    name   = "group-name"
-    values = ["prometheus_grafana_sg"]
-  }
-
-  filter {
-    name   = "vpc-id"
-    values = ["vpc-0d58c2b1c9009ac23"] # Replace with your actual VPC ID
-  }
-
-  depends_on = [aws_vpc.selected] # Ensure VPC selection first
-}
-
-# Conditionally create a new security group only if it doesn't exist
-resource "aws_security_group" "prometheus_grafana_sg" {
-  count       = length(data.aws_security_group.existing_prometheus_grafana_sg.id) == 0 ? 1 : 0 # Create only if not found
-  name        = "prometheus_grafana_sg"
-  description = "Allow Prometheus and Grafana traffic"
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # Open SSH access to all IPs
-  }
-
-  ingress {
-    from_port   = 9090
-    to_port     = 9090
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # Open Prometheus port
-  }
-
-  ingress {
-    from_port   = 3000
-    to_port     = 3000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # Open Grafana port
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"] # Allow all outbound traffic
-  }
-
-  tags = {
-    Name = "PrometheusGrafanaSG"
-  }
-}
-
-# Use the existing security group if available, otherwise use the new one
 resource "aws_instance" "prometheus_grafana" {
   ami           = "ami-12345678"  # Replace with the correct AMI ID
   instance_type = "t2.micro"
   key_name      = "your-ssh-key"
 
   # Attach either the existing or newly created security group
-  vpc_security_group_ids = length(data.aws_security_group.existing_prometheus_grafana_sg.id) > 0 ? 
-    [data.aws_security_group.existing_prometheus_grafana_sg.id] : 
-    [aws_security_group.prometheus_grafana_sg.id]
+  vpc_security_group_ids = coalesce(
+    data.aws_security_group.existing_prometheus_grafana_sg.id,
+    aws_security_group.prometheus_grafana_sg.id
+  )
 
   user_data = <<-EOF
     #!/bin/bash
