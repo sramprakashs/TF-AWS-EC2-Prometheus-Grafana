@@ -1,5 +1,5 @@
 resource "aws_instance" "prometheus_grafana" {
-  ami           = "ami-0c55b159cbfafe1f0"
+  ami           = "ami-0866a3c8686eaeeba"
   instance_type = "t2.micro"
   key_name      = "your-ssh-key"
 
