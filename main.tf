@@ -1,3 +1,56 @@
+# Fetch the existing security group (if it exists)
+data "aws_security_group" "existing_prometheus_grafana_sg" {
+  filter {
+    name   = "group-name"
+    values = ["prometheus_grafana_sg"]
+  }
+
+  filter {
+    name   = "vpc-id"
+    values = ["vpc-0d58c2b1c9009ac23"] # Replace with your actual VPC ID
+  }
+}
+
+# Define a new security group if the existing one is not found
+resource "aws_security_group" "prometheus_grafana_sg" {
+  count       = length(data.aws_security_group.existing_prometheus_grafana_sg.id) == 0 ? 1 : 0
+  name        = "prometheus_grafana_sg"
+  description = "Allow Prometheus and Grafana traffic"
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 9090
+    to_port     = 9090
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "PrometheusGrafanaSG"
+  }
+}
+
+# Define the EC2 instance and attach either the existing or newly created security group
 resource "aws_instance" "prometheus_grafana" {
   ami           = "ami-12345678"  # Replace with the correct AMI ID
   instance_type = "t2.micro"
@@ -6,7 +59,7 @@ resource "aws_instance" "prometheus_grafana" {
   # Attach either the existing or newly created security group
   vpc_security_group_ids = coalesce(
     data.aws_security_group.existing_prometheus_grafana_sg.id,
-    aws_security_group.prometheus_grafana_sg.id
+    aws_security_group.prometheus_grafana_sg[0].id
   )
 
   user_data = <<-EOF
