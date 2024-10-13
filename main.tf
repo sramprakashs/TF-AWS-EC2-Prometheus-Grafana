@@ -1,22 +1,12 @@
-# Fetch the existing security group (if it exists)
-data "aws_security_group" "existing_prometheus_grafana_sg" {
-  filter {
-    name   = "group-name"
-    values = ["prometheus_grafana_sg"]
-  }
-
-  filter {
-    name   = "vpc-id"
-    values = ["vpc-0d58c2b1c9009ac23"] # Replace with your actual VPC ID
-  }
-}
-
-# Conditionally create a new security group if the existing one is not found
+# Define a security group that is always recreated on apply
 resource "aws_security_group" "prometheus_grafana_sg" {
-  count = length(data.aws_security_group.existing_prometheus_grafana_sg.id) == 0 ? 1 : 0
-
   name        = "prometheus_grafana_sg"
   description = "Allow Prometheus and Grafana traffic"
+
+  # Lifecycle block to always force recreation of the security group
+  lifecycle {
+    create_before_destroy = true
+  }
 
   ingress {
     from_port   = 22
@@ -51,16 +41,14 @@ resource "aws_security_group" "prometheus_grafana_sg" {
   }
 }
 
-# Use the existing security group or the new one based on its existence
+# Define the EC2 instance and attach the recreated security group
 resource "aws_instance" "prometheus_grafana" {
   ami           = "ami-12345678"  # Replace with the correct AMI ID
   instance_type = "t2.micro"
   key_name      = "your-ssh-key"
 
-  # Attach either the existing or newly created security group
-  vpc_security_group_ids = length(data.aws_security_group.existing_prometheus_grafana_sg.id) > 0 ? 
-    [data.aws_security_group.existing_prometheus_grafana_sg.id] : 
-    aws_security_group.prometheus_grafana_sg.*.id[0]
+  # Attach the recreated security group
+  vpc_security_group_ids = [aws_security_group.prometheus_grafana_sg.id]
 
   user_data = <<-EOF
     #!/bin/bash
