@@ -1,7 +1,7 @@
 resource "aws_instance" "prometheus_grafana" {
   ami           = "ami-0866a3c8686eaeeba"
   instance_type = "t2.micro"
-  key_name      = "Ramprakash-amazon3"
+  key_name      = "Ramprakash-Amazon3"
 
   user_data = <<-EOF
     #!/bin/bash
