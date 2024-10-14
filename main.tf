@@ -1,4 +1,4 @@
-# Remove the data source block for checking the existing security group
+# Remove the data source block for checking the existing security group1
 
 # Create a new security group for Prometheus and Grafana
 resource "aws_security_group" "prometheus_grafana_sg" {
